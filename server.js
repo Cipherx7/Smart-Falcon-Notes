@@ -21,15 +21,19 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Connect to MongoDB and start server
+// Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => {
     console.log('✅ Connected to MongoDB');
-    app.listen(PORT, () => {
-      console.log(`🦅 Falcon Smart Notes running on http://localhost:${PORT}`);
-    });
   })
   .catch(err => {
     console.error('❌ MongoDB connection error:', err.message);
-    process.exit(1);
   });
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🦅 Falcon Smart Notes running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
