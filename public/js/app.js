@@ -19,7 +19,8 @@ const processingText = document.getElementById('processingText');
 const noteInput = document.getElementById('noteInput');
 const toastContainer = document.getElementById('toastContainer');
 const searchContainer = document.getElementById('searchContainer');
-const themeSelect = document.getElementById('themeSelect');
+const themeSelects = document.querySelectorAll('.theme-select');
+const btnToggleMobileSearch = document.getElementById('btnToggleMobileSearch');
 const btnSidebarToggle = document.getElementById('btnSidebarToggle');
 const sidebar = document.getElementById('sidebar');
 const sidebarBackdrop = document.getElementById('sidebarBackdrop');
@@ -41,7 +42,9 @@ function initTheme() {
   const savedTheme = localStorage.getItem('falcon-theme');
   if (savedTheme) {
     document.documentElement.setAttribute('data-theme', savedTheme);
-    themeSelect.value = savedTheme;
+    themeSelects.forEach(select => {
+      select.value = savedTheme;
+    });
   }
 }
 
@@ -49,6 +52,9 @@ function handleThemeChange(e) {
   const newTheme = e.target.value;
   document.documentElement.setAttribute('data-theme', newTheme);
   localStorage.setItem('falcon-theme', newTheme);
+  themeSelects.forEach(select => {
+    if (select !== e.target) select.value = newTheme;
+  });
 }
 
 // ===== Event Bindings =====
@@ -88,8 +94,18 @@ function bindEvents() {
   document.getElementById('btnClearSearch').addEventListener('click', clearSearch);
 
   // Theme Select
-  if (themeSelect) {
-    themeSelect.addEventListener('change', handleThemeChange);
+  themeSelects.forEach(select => {
+    select.addEventListener('change', handleThemeChange);
+  });
+
+  // Mobile Search Toggle
+  if (btnToggleMobileSearch) {
+    btnToggleMobileSearch.addEventListener('click', () => {
+      searchContainer.classList.toggle('active');
+      if (searchContainer.classList.contains('active')) {
+        setTimeout(() => searchInput.focus(), 100);
+      }
+    });
   }
 
   // Close modals on overlay click

@@ -59,6 +59,22 @@
       </nav>
 
       <div class="sidebar-footer">
+        <div class="theme-selector mobile-only" style="margin-bottom: 12px;">
+          <select class="theme-select" aria-label="Select Theme">
+            <option value="solarized-dark">Solarized Dark</option>
+            <option value="black-on-light-yellow">Black on Light Yellow</option>
+            <option value="black-on-random-light">Black on Random Light</option>
+            <option value="black-on-white">Black on White</option>
+            <option value="blue-on-black">Blue on Black</option>
+            <option value="breeze">Breeze</option>
+            <option value="campbell">Campbell</option>
+            <option value="dark-pastels">Dark Pastels</option>
+            <option value="green-on-black">Green on Black</option>
+            <option value="linux-colors">Linux Colors</option>
+            <option value="nobara">Nobara</option>
+            <option value="red-on-black">Red on Black</option>
+          </select>
+        </div>
         <button class="btn-add-note" id="btnAddNote">
           <span>＋</span> Add Knowledge
         </button>
@@ -72,6 +88,8 @@
         <button class="btn-sidebar-toggle" id="btnSidebarToggle" aria-label="Toggle Sidebar">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18M3 6h18M3 18h18" stroke-linecap="round"/></svg>
         </button>
+        <div class="header-title mobile-only">Falcon Notes</div>
+        <button class="btn-toggle-mobile-search mobile-only" id="btnToggleMobileSearch" aria-label="Search">🔍</button>
         <div class="search-container" id="searchContainer">
           <span class="search-icon">🔍</span>
           <input 
