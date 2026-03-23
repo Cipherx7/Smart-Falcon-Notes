@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en" data-theme="solarized-dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="AI-powered smart notes for CrowdStrike Falcon learning — structured knowledge with Gemini AI">
+  <title>Falcon Smart Notes — AI Knowledge Base</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- ===== Sidebar ===== -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-icon">🦅</div>
+        <h1>Falcon Notes <span>AI-Powered Knowledge</span></h1>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Categories</div>
+        <div class="nav-item active" data-category="all">
+          <span class="nav-icon">📋</span>
+          <span>All Notes</span>
+          <span class="count-badge" id="count-all">0</span>
+        </div>
+        <div class="nav-item" data-category="command">
+          <span class="nav-icon">⌨️</span>
+          <span>Commands</span>
+          <span class="count-badge" id="count-command">0</span>
+        </div>
+        <div class="nav-item" data-category="note">
+          <span class="nav-icon">📝</span>
+          <span>Notes</span>
+          <span class="count-badge" id="count-note">0</span>
+        </div>
+        <div class="nav-item" data-category="code">
+          <span class="nav-icon">💻</span>
+          <span>Code</span>
+          <span class="count-badge" id="count-code">0</span>
+        </div>
+        <div class="nav-item" data-category="concept">
+          <span class="nav-icon">💡</span>
+          <span>Concepts</span>
+          <span class="count-badge" id="count-concept">0</span>
+        </div>
+        <div class="nav-item" data-category="troubleshooting">
+          <span class="nav-icon">🔧</span>
+          <span>Troubleshooting</span>
+          <span class="count-badge" id="count-troubleshooting">0</span>
+        </div>
+        <div class="nav-item" data-category="general">
+          <span class="nav-icon">📦</span>
+          <span>General</span>
+          <span class="count-badge" id="count-general">0</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn-add-note" id="btnAddNote">
+          <span>＋</span> Add Knowledge
+        </button>
+      </div>
+    </aside>
+
+    <!-- ===== Main Content ===== -->
+    <main class="main-content">
+      <!-- Header Bar -->
+      <header class="header-bar">
+        <div class="search-container" id="searchContainer">
+          <span class="search-icon">🔍</span>
+          <input 
+            type="text" 
+            class="search-input" 
+            id="searchInput" 
+            placeholder="Ask Falcon AI or search notes... (powered by Gemini)"
+            autocomplete="off"
+          >
+        </div>
+        
+        <div class="search-mode-selector">
+          <label class="radio-label">
+            <input type="radio" name="searchMode" value="default" checked>
+            <span>Default AI Search</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="searchMode" value="whatsapp">
+            <span>WhatsApp Marathi 💬</span>
+          </label>
+        </div>
+
+        <div class="theme-selector">
+          <select class="theme-select" id="themeSelect" aria-label="Select Theme">
+            <option value="solarized-dark">Solarized Dark</option>
+            <option value="black-on-light-yellow">Black on Light Yellow</option>
+            <option value="black-on-random-light">Black on Random Light</option>
+            <option value="black-on-white">Black on White</option>
+            <option value="blue-on-black">Blue on Black</option>
+            <option value="breeze">Breeze</option>
+            <option value="campbell">Campbell</option>
+            <option value="dark-pastels">Dark Pastels</option>
+            <option value="green-on-black">Green on Black</option>
+            <option value="linux-colors">Linux Colors</option>
+            <option value="nobara">Nobara</option>
+            <option value="red-on-black">Red on Black</option>
+          </select>
+        </div>
+        <div class="header-stats">
+          <div class="stat-item">
+            <span>Total:</span>
+            <span class="stat-value" id="statTotal">0</span>
+          </div>
+          <div class="stat-item">
+            <span>Last added:</span>
+            <span class="stat-value" id="statLastAdded">—</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Area -->
+      <div class="content-area" id="contentArea">
+        <!-- Search Results (hidden by default) -->
+        <div class="search-results-container" id="searchResults">
+          <div class="ai-answer-box" id="aiAnswerBox">
+            <div class="ai-answer-header">
+              <span>✨</span> AI Answer
+            </div>
+            <div class="ai-answer-content" id="aiAnswerContent"></div>
+          </div>
+          <div class="search-results-header">
+            <span class="search-results-title" id="searchResultsTitle">Matching Notes</span>
+            <button class="btn-clear-search" id="btnClearSearch">✕ Clear Search</button>
+          </div>
+          <div class="notes-grid" id="searchNotesGrid"></div>
+        </div>
+
+        <!-- Notes Grid -->
+        <div class="notes-grid" id="notesGrid"></div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display:none;">
+          <div class="empty-state-icon">🦅</div>
+          <h3>No notes yet</h3>
+          <p>Start building your Falcon knowledge base. Click "Add Knowledge" to add your first note — AI will structure it for you.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ===== Add Note Modal ===== -->
+  <div class="modal-overlay" id="addNoteModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📥 Add Knowledge</h2>
+        <button class="btn-close-modal" id="btnCloseAddModal">✕</button>
+      </div>
+      <div class="modal-body">
+        <textarea 
+          class="add-note-textarea" 
+          id="noteInput" 
+          placeholder="Paste or type your Falcon knowledge here...&#10;&#10;Examples:&#10;• CQL query syntax and usage&#10;• Sensor deployment steps&#10;• Detection tuning notes&#10;• API endpoint documentation&#10;• Threat hunting techniques&#10;&#10;Gemini AI will automatically structure this into organized knowledge."
+        ></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelAdd">Cancel</button>
+        <button class="btn btn-primary" id="btnSubmitNote">
+          <span>✨</span> Process with AI
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Note Detail Modal ===== -->
+  <div class="modal-overlay note-detail-modal" id="noteDetailModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>📖 Knowledge Detail</h2>
+        <button class="btn-close-modal" id="btnCloseDetailModal">✕</button>
+      </div>
+      <div class="modal-body" id="noteDetailContent">
+        <!-- Dynamically filled -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Processing Overlay ===== -->
+  <div class="processing-overlay" id="processingOverlay">
+    <div class="processing-spinner"></div>
+    <div class="processing-text" id="processingText">Processing with Gemini AI...</div>
+    <div class="processing-subtext">Structuring your knowledge</div>
+  </div>
+
+  <!-- ===== Toast Container ===== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ===== Scripts ===== -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="/js/app.js"></script>
+</body>
+</html>
