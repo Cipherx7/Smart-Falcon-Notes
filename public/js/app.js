@@ -20,6 +20,9 @@ const noteInput = document.getElementById('noteInput');
 const toastContainer = document.getElementById('toastContainer');
 const searchContainer = document.getElementById('searchContainer');
 const themeSelect = document.getElementById('themeSelect');
+const btnSidebarToggle = document.getElementById('btnSidebarToggle');
+const sidebar = document.getElementById('sidebar');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 
 // State
 let allNotes = [];
@@ -59,10 +62,24 @@ function bindEvents() {
   // Detail modal
   document.getElementById('btnCloseDetailModal').addEventListener('click', closeDetailModal);
 
+  // Sidebar Toggle
+  if (btnSidebarToggle) {
+    btnSidebarToggle.addEventListener('click', () => {
+      sidebar.classList.add('open');
+      sidebarBackdrop.classList.add('active');
+    });
+  }
+  if (sidebarBackdrop) {
+    sidebarBackdrop.addEventListener('click', closeSidebar);
+  }
+
   // Category nav
   document.querySelectorAll('.nav-item[data-category]').forEach(item => {
     item.addEventListener('click', () => {
       setActiveCategory(item.dataset.category);
+      if (window.innerWidth <= 768) {
+        closeSidebar();
+      }
     });
   });
 
@@ -438,6 +455,11 @@ function openAddModal() {
 
 function closeAddModal() {
   addNoteModal.classList.remove('active');
+}
+
+function closeSidebar() {
+  if (sidebar) sidebar.classList.remove('open');
+  if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
 }
 
 function openNoteDetail(id) {

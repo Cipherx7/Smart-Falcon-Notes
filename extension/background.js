@@ -1,6 +1,6 @@
 // Extension Background Script
 
-const API_URL = 'http://localhost:3000/api/notes';
+const API_URL = 'https://smart-falcon-notes.vercel.app/api/notes';
 
 // Create the context menu item when the extension is installed
 chrome.runtime.onInstalled.addListener(() => {

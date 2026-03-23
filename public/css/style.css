@@ -1294,8 +1294,63 @@ body {
   to { transform: translateX(100%); opacity: 0; }
 }
 
+/* ===== Sidebar Toggle ===== */
+.btn-sidebar-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+}
+
+.btn-sidebar-toggle:hover {
+  background: var(--bg-hover);
+}
+
+.sidebar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 400;
+  opacity: 0;
+  visibility: hidden;
+  transition: var(--transition);
+}
+
+.sidebar-backdrop.active {
+  opacity: 1;
+  visibility: visible;
+}
+
 /* ===== Responsive ===== */
 @media (max-width: 768px) {
+  .btn-sidebar-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .header-bar {
+    padding: 0 16px;
+    gap: 12px;
+  }
+
+  .search-mode-selector .radio-label span {
+    display: none; /* Hide text to save space */
+  }
+
+  .search-mode-selector .radio-label::before {
+    font-size: 1.2rem;
+  }
+
+  .content-area {
+    padding: 16px;
+  }
+
   .sidebar {
     position: fixed;
     left: -280px;

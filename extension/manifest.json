@@ -13,7 +13,7 @@
     "notifications"
   ],
   "host_permissions": [
-    "http://localhost:3000/*"
+    "https://smart-falcon-notes.vercel.app/*"
   ],
   "background": {
     "service_worker": "background.js"
