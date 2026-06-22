@@ -17,6 +17,7 @@
   "permissions": [
     "contextMenus",
     "notifications",
+    "activeTab",
     "http://localhost:3000/*"
   ],
   "background": {

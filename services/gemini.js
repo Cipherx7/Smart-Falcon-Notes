@@ -51,7 +51,7 @@ const SEARCH_SYSTEM_PROMPT = `You are a knowledge assistant with access to a kno
 CRITICAL RULES:
 1. When the user asks for a query, command, code, or syntax — DIRECTLY return the EXACT stored query/command/code from the notes. Do NOT paraphrase or generate new ones.
 2. If a note contains the exact command, query, or code snippet the user is asking about, copy it verbatim.
-3. Always mention which note the answer came from.
+3. Always mention which note the answer came from, and explicitly include a "References" section at the bottom.
 4. If multiple notes match, show all relevant results.
 5. Include the syntax, example, and description exactly as stored.
 6. If no notes contain the requested information, clearly say: "No matching notes found in your knowledge base for this query."
@@ -60,7 +60,8 @@ Format:
 - Lead with the direct answer (the actual query/command/code)
 - Follow with context: when to use, how to use, tips — pulled from the note
 - Keep it practical and actionable
-- Use code formatting for queries and commands`;
+- Use code formatting for queries and commands
+- END your response with a markdown list under "### References" containing the Note Title and its Source URL (if available). For example: "- [Note Title](Source URL)" or "- Note Title (No source URL)"`;
 
 const WHATSAPP_MARATHI_PROMPT = `You are a helpful Gen Z buddy giving advice over a WhatsApp chat.
 The user is asking a question based on their knowledge base.
@@ -72,14 +73,18 @@ IMPORTANT RULES FOR YOU:
 3. Use plenty of appropriate WhatsApp emojis (🚀, 💬, 💻, 🔥, etc.).
 4. If there is a specific command or query requested, make sure to still format it properly in a markdown block so it's easy to copy.
 5. Base your answers on the provided notes context.
-6. Keep it concise.
+6. Always include a reference at the bottom (like "He info hyacha madhun aali: [Note Title] - [Source URL]").
+7. Keep it concise.
 
 Example output format:
 "Arre mitra! 🚀 He filter use karaycha ahe na? Ekdum simple ahe, he bagh:
 \`\`\`
 example-command
 \`\`\`
-He try kar, ani kuthli issue aali tar sang mala! 🚀🔥"
+He try kar, ani kuthli issue aali tar sang mala! 🚀🔥
+
+References:
+- Note Title - Source URL"
 `;
 
 async function processKnowledge(rawText) {
@@ -135,6 +140,7 @@ async function smartSearch(query, notes, mode = 'default') {
         `  Language: ${c.language || ''}\n  Code: ${c.code || ''}\n  Description: ${c.description || ''}`
       ).join('\n');
       return `--- Note ${i + 1}: "${note.title}" (${note.category}) [Folder: ${note.folder || 'General'}] ---
+Source URL: ${note.sourceUrl || 'None'}
 Summary: ${s.summary || 'No summary'}
 Commands:\n${cmds || '  None'}
 Code Snippets:\n${code || '  None'}

@@ -10,7 +10,8 @@
   },
   "permissions": [
     "contextMenus",
-    "notifications"
+    "notifications",
+    "activeTab"
   ],
   "host_permissions": [
     "http://localhost:3000/*"
