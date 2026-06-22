@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!DOCTYPE html>
 <html lang="en" data-theme="solarized-dark">
 <head>
   <meta charset="UTF-8">
@@ -20,41 +19,29 @@
       </div>
 
       <nav class="sidebar-nav">
-        <div class="nav-section-title">Categories</div>
-        <div class="nav-item active" data-category="all">
-          <span class="nav-icon">📋</span>
-          <span>All Notes</span>
-          <span class="count-badge" id="count-all">0</span>
+        <!-- View Mode Toggle -->
+        <div class="sidebar-view-toggle">
+          <button class="view-toggle-btn active" data-view="categories" id="btnViewCategories"><span>📋</span> Categories</button>
+          <button class="view-toggle-btn" data-view="folders" id="btnViewFolders"><span>📁</span> Folders</button>
         </div>
-        <div class="nav-item" data-category="command">
-          <span class="nav-icon">⌨️</span>
-          <span>Commands</span>
-          <span class="count-badge" id="count-command">0</span>
+
+        <!-- Categories View -->
+        <div class="sidebar-view" id="categoriesView">
+          <div class="nav-section-title">Categories</div>
+          <div class="nav-item active" data-category="all"><span class="nav-icon">📋</span><span>All Notes</span><span class="count-badge" id="count-all">0</span></div>
+          <div class="nav-item" data-category="command"><span class="nav-icon">⌨️</span><span>Commands</span><span class="count-badge" id="count-command">0</span></div>
+          <div class="nav-item" data-category="note"><span class="nav-icon">📝</span><span>Notes</span><span class="count-badge" id="count-note">0</span></div>
+          <div class="nav-item" data-category="code"><span class="nav-icon">💻</span><span>Code</span><span class="count-badge" id="count-code">0</span></div>
+          <div class="nav-item" data-category="concept"><span class="nav-icon">💡</span><span>Concepts</span><span class="count-badge" id="count-concept">0</span></div>
+          <div class="nav-item" data-category="troubleshooting"><span class="nav-icon">🔧</span><span>Troubleshooting</span><span class="count-badge" id="count-troubleshooting">0</span></div>
+          <div class="nav-item" data-category="general"><span class="nav-icon">📦</span><span>General</span><span class="count-badge" id="count-general">0</span></div>
         </div>
-        <div class="nav-item" data-category="note">
-          <span class="nav-icon">📝</span>
-          <span>Notes</span>
-          <span class="count-badge" id="count-note">0</span>
-        </div>
-        <div class="nav-item" data-category="code">
-          <span class="nav-icon">💻</span>
-          <span>Code</span>
-          <span class="count-badge" id="count-code">0</span>
-        </div>
-        <div class="nav-item" data-category="concept">
-          <span class="nav-icon">💡</span>
-          <span>Concepts</span>
-          <span class="count-badge" id="count-concept">0</span>
-        </div>
-        <div class="nav-item" data-category="troubleshooting">
-          <span class="nav-icon">🔧</span>
-          <span>Troubleshooting</span>
-          <span class="count-badge" id="count-troubleshooting">0</span>
-        </div>
-        <div class="nav-item" data-category="general">
-          <span class="nav-icon">📦</span>
-          <span>General</span>
-          <span class="count-badge" id="count-general">0</span>
+
+        <!-- Folders View -->
+        <div class="sidebar-view" id="foldersView" style="display: none;">
+          <div class="nav-section-title">Folders</div>
+          <div class="nav-item active" data-folder="all"><span class="nav-icon">📂</span><span>All Folders</span><span class="count-badge" id="count-folder-all">0</span></div>
+          <div id="foldersList"></div>
         </div>
       </nav>
 
@@ -142,6 +129,12 @@
 
       <!-- Content Area -->
       <div class="content-area" id="contentArea">
+        <!-- Active Filter Banner -->
+        <div class="active-filter-banner" id="activeFilterBanner" style="display: none;">
+          <span class="filter-banner-icon">📁</span>
+          <span class="filter-banner-text" id="filterBannerText"></span>
+          <button class="filter-banner-clear" id="btnClearFolderFilter">✕ Clear</button>
+        </div>
         <!-- Search Results (hidden by default) -->
         <div class="search-results-container" id="searchResults">
           <div class="ai-answer-box" id="aiAnswerBox">
@@ -178,6 +171,13 @@
         <button class="btn-close-modal" id="btnCloseAddModal">✕</button>
       </div>
       <div class="modal-body">
+        <div class="folder-input-group">
+          <label class="folder-input-label" for="folderInput">📁 Folder (optional)</label>
+          <div class="folder-input-wrapper">
+            <input type="text" class="folder-input" id="folderInput" placeholder="e.g., Proofpoint, Docker, Python... (AI auto-detects if empty)" autocomplete="off" list="folderSuggestions">
+            <datalist id="folderSuggestions"></datalist>
+          </div>
+        </div>
         <textarea 
           class="add-note-textarea" 
           id="noteInput" 

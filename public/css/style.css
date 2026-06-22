@@ -1463,3 +1463,152 @@ body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+/* ===== Sidebar View Toggle ===== */
+.sidebar-view-toggle {
+  display: flex;
+  gap: 4px;
+  padding: 12px 12px 8px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  margin: 8px 12px;
+}
+
+.view-toggle-btn {
+  flex: 1;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.view-toggle-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+}
+
+.view-toggle-btn.active {
+  background: var(--bg-secondary);
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 1px 4px var(--shadow);
+}
+
+.view-toggle-btn span {
+  font-size: 0.9rem;
+}
+
+/* ===== Folder Badge ===== */
+.folder-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: rgba(108, 113, 196, 0.12);
+  border: 1px solid rgba(108, 113, 196, 0.2);
+  border-radius: 20px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--violet);
+  white-space: nowrap;
+}
+
+/* ===== Active Filter Banner ===== */
+.active-filter-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: rgba(108, 113, 196, 0.1);
+  border: 1px solid rgba(108, 113, 196, 0.25);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
+.filter-banner-icon {
+  font-size: 1.1rem;
+}
+
+.filter-banner-text {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-weight: 500;
+  flex: 1;
+}
+
+.filter-banner-clear {
+  padding: 5px 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-family: inherit;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.filter-banner-clear:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+/* ===== Folder Input in Modal ===== */
+.folder-input-group {
+  margin-bottom: 16px;
+}
+
+.folder-input-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.folder-input-wrapper {
+  position: relative;
+}
+
+.folder-input {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.85rem;
+  outline: none;
+  transition: var(--transition);
+}
+
+.folder-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(181, 137, 0, 0.12);
+}
+
+.folder-input::placeholder {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* ===== Folder nav item styling ===== */
+.folder-item {
+  text-transform: none !important;
+}
+
+.folder-item .count-badge {
+  font-variant-numeric: tabular-nums;
+}
+

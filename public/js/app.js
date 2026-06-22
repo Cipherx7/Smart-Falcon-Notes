@@ -17,6 +17,7 @@ const noteDetailContent = document.getElementById('noteDetailContent');
 const processingOverlay = document.getElementById('processingOverlay');
 const processingText = document.getElementById('processingText');
 const noteInput = document.getElementById('noteInput');
+const folderInput = document.getElementById('folderInput');
 const toastContainer = document.getElementById('toastContainer');
 const searchContainer = document.getElementById('searchContainer');
 const themeSelects = document.querySelectorAll('.theme-select');
@@ -25,15 +26,26 @@ const btnSidebarToggle = document.getElementById('btnSidebarToggle');
 const sidebar = document.getElementById('sidebar');
 const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 
+// Folder DOM Elements
+const categoriesView = document.getElementById('categoriesView');
+const foldersView = document.getElementById('foldersView');
+const foldersList = document.getElementById('foldersList');
+const activeFilterBanner = document.getElementById('activeFilterBanner');
+const filterBannerText = document.getElementById('filterBannerText');
+
 // State
 let allNotes = [];
 let activeCategory = 'all';
+let activeFolder = 'all';
+let activeView = 'categories'; // 'categories' or 'folders'
+let allFolders = [];
 let searchTimeout = null;
 
 // ===== Initialize =====
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   loadNotes();
+  loadFolders();
   bindEvents();
 });
 
@@ -83,10 +95,23 @@ function bindEvents() {
   document.querySelectorAll('.nav-item[data-category]').forEach(item => {
     item.addEventListener('click', () => {
       setActiveCategory(item.dataset.category);
-      if (window.innerWidth <= 768) {
-        closeSidebar();
-      }
+      if (window.innerWidth <= 768) closeSidebar();
     });
+  });
+
+  // Folder "All Folders" nav
+  document.querySelector('.nav-item[data-folder="all"]').addEventListener('click', () => {
+    setActiveFolder('all');
+    if (window.innerWidth <= 768) closeSidebar();
+  });
+
+  // View toggle buttons
+  document.getElementById('btnViewCategories').addEventListener('click', () => switchView('categories'));
+  document.getElementById('btnViewFolders').addEventListener('click', () => switchView('folders'));
+
+  // Folder filter clear
+  document.getElementById('btnClearFolderFilter').addEventListener('click', () => {
+    setActiveFolder('all');
   });
 
   // Search
@@ -122,7 +147,6 @@ function bindEvents() {
       closeAddModal();
       closeDetailModal();
     }
-    // Ctrl+K to focus search
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
       e.preventDefault();
       searchInput.focus();
@@ -130,10 +154,137 @@ function bindEvents() {
   });
 }
 
+// ===== View Toggle =====
+function switchView(view) {
+  activeView = view;
+
+  document.querySelectorAll('.view-toggle-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === view);
+  });
+
+  if (view === 'categories') {
+    categoriesView.style.display = '';
+    foldersView.style.display = 'none';
+    // Reset folder filter when switching to categories
+    activeFolder = 'all';
+    activeFilterBanner.style.display = 'none';
+    loadNotes(activeCategory);
+  } else {
+    categoriesView.style.display = 'none';
+    foldersView.style.display = '';
+    // Reset category filter when switching to folders
+    activeCategory = 'all';
+    loadFolders();
+    loadNotes();
+  }
+}
+
+// ===== Folder Management =====
+async function loadFolders() {
+  try {
+    const res = await fetch(`${API_BASE}/notes/folders`);
+    const data = await res.json();
+
+    if (data.success) {
+      allFolders = data.folders;
+      renderFolders(data.folders);
+      updateFolderSuggestions(data.folders);
+    }
+  } catch (err) {
+    console.error('Failed to load folders:', err);
+  }
+}
+
+function renderFolders(folders) {
+  const totalCount = folders.reduce((sum, f) => sum + f.count, 0);
+  const countAllEl = document.getElementById('count-folder-all');
+  if (countAllEl) countAllEl.textContent = totalCount;
+
+  const folderIcons = {
+    'General': '📦', 'Proofpoint': '🛡️', 'CrowdStrike': '🦅',
+    'Docker': '🐳', 'Python': '🐍', 'Linux': '🐧',
+    'AWS': '☁️', 'Kubernetes': '⎈', 'Git': '🔀',
+    'Networking': '🌐', 'JavaScript': '🟨', 'Database': '🗄️',
+    'Security': '🔒', 'DevOps': '🔄', 'API': '🔌',
+    'Windows': '🪟', 'Azure': '☁️', 'Terraform': '🏗️',
+  };
+
+  foldersList.innerHTML = folders.map(f => {
+    const icon = folderIcons[f.name] || '📁';
+    const isActive = activeFolder === f.name;
+    return `
+      <div class="nav-item folder-item${isActive ? ' active' : ''}" data-folder="${escapeHtml(f.name)}" onclick="setActiveFolder('${escapeHtml(f.name).replace(/'/g, "\\'")}')">
+        <span class="nav-icon">${icon}</span>
+        <span>${escapeHtml(f.name)}</span>
+        <span class="count-badge">${f.count}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateFolderSuggestions(folders) {
+  const datalist = document.getElementById('folderSuggestions');
+  if (!datalist) return;
+  datalist.innerHTML = folders.map(f =>
+    `<option value="${escapeHtml(f.name)}">`
+  ).join('');
+}
+
+function setActiveFolder(folder) {
+  activeFolder = folder;
+
+  // Update nav active states
+  document.querySelectorAll('.nav-item[data-folder]').forEach(item => {
+    item.classList.toggle('active', item.dataset.folder === folder);
+  });
+  document.querySelectorAll('#foldersList .folder-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.folder === folder);
+  });
+
+  // Show/hide filter banner
+  if (folder !== 'all') {
+    activeFilterBanner.style.display = 'flex';
+    filterBannerText.textContent = `Viewing folder: ${folder}`;
+  } else {
+    activeFilterBanner.style.display = 'none';
+  }
+
+  // Clear search if active
+  if (searchResults.classList.contains('active')) {
+    clearSearch();
+    return;
+  }
+
+  loadNotesByFolder(folder);
+}
+
+async function loadNotesByFolder(folder = 'all') {
+  try {
+    const params = folder !== 'all' ? `?folder=${encodeURIComponent(folder)}` : '';
+    const res = await fetch(`${API_BASE}/notes${params}`);
+    const data = await res.json();
+
+    if (data.success) {
+      allNotes = data.notes;
+      renderNotes(allNotes);
+      updateStats();
+    }
+  } catch (err) {
+    console.error('Failed to load notes:', err);
+    showToast('Failed to load notes', 'error');
+  }
+}
+
 // ===== API Calls =====
 async function loadNotes(category = 'all') {
   try {
-    const params = category !== 'all' ? `?category=${category}` : '';
+    let params = '';
+    if (activeView === 'folders' && activeFolder !== 'all') {
+      params = `?folder=${encodeURIComponent(activeFolder)}`;
+    } else if (category !== 'all') {
+      params = `?category=${category}`;
+    }
+
     const res = await fetch(`${API_BASE}/notes${params}`);
     const data = await res.json();
 
@@ -149,23 +300,28 @@ async function loadNotes(category = 'all') {
   }
 }
 
-async function createNote(rawInput) {
+async function createNote(rawInput, folder) {
   showProcessing('Processing with Gemini AI...', 'Structuring your knowledge');
 
   try {
+    const body = { rawInput };
+    if (folder) body.folder = folder;
+
     const res = await fetch(`${API_BASE}/notes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ rawInput })
+      body: JSON.stringify(body)
     });
 
     const data = await res.json();
     hideProcessing();
 
     if (data.success) {
-      showToast('Knowledge added successfully!', 'success');
+      const savedFolder = data.note.folder || 'General';
+      showToast(`Knowledge added to "${savedFolder}" folder!`, 'success');
       closeAddModal();
       loadNotes(activeCategory);
+      loadFolders();
     } else {
       showToast(data.error || 'Failed to process note', 'error');
     }
@@ -187,6 +343,7 @@ async function deleteNote(id, e) {
     if (data.success) {
       showToast('Note deleted', 'info');
       loadNotes(activeCategory);
+      loadFolders();
     } else {
       showToast('Failed to delete note', 'error');
     }
@@ -240,19 +397,20 @@ function createNoteCard(note) {
   ).join('');
 
   const summary = note.structured?.summary || 'No summary available';
+  const folderBadge = note.folder ? `<span class="folder-badge">\ud83d\udcc1 ${escapeHtml(note.folder)}</span>` : '';
 
   return `
-    <div class="note-card" data-category="${note.category}" onclick="openNoteDetail('${note._id}')">
+    <div class="note-card" data-category="${note.category}" data-folder="${escapeHtml(note.folder || 'General')}" onclick="openNoteDetail('${note._id}')">
       <div class="note-card-header">
         <div class="note-card-title">${escapeHtml(note.title)}</div>
         <span class="category-badge ${note.category}">${note.category}</span>
       </div>
       <div class="note-card-summary">${escapeHtml(summary)}</div>
-      <div class="note-card-tags">${tags}</div>
+      <div class="note-card-tags">${folderBadge}${tags}</div>
       <div class="note-card-footer">
         <span class="note-date">${date}</span>
         <div class="note-actions">
-          <button class="btn-icon delete" onclick="deleteNote('${note._id}', event)" title="Delete">🗑️</button>
+          <button class="btn-icon delete" onclick="deleteNote('${note._id}', event)" title="Delete">\ud83d\uddd1\ufe0f</button>
         </div>
       </div>
     </div>
@@ -266,123 +424,56 @@ function renderNoteDetail(note) {
     <div class="detail-title">${escapeHtml(note.title)}</div>
     <div class="detail-meta">
       <span class="category-badge ${note.category}">${note.category}</span>
+      ${note.folder ? `<span class="folder-badge">\ud83d\udcc1 ${escapeHtml(note.folder)}</span>` : ''}
       <span class="note-date">${new Date(note.createdAt).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
     </div>
   `;
 
-  // Summary
   if (s.summary) {
-    html += `
-      <div class="detail-section">
-        <div class="detail-section-title">Summary</div>
-        <div class="detail-text">${escapeHtml(s.summary)}</div>
-      </div>
-    `;
+    html += `<div class="detail-section"><div class="detail-section-title">Summary</div><div class="detail-text">${escapeHtml(s.summary)}</div></div>`;
   }
 
-  // Commands
   if (s.commands && s.commands.length > 0) {
-    html += `<div class="detail-section"><div class="detail-section-title">⌨️ Commands</div>`;
+    html += `<div class="detail-section"><div class="detail-section-title">\u2328\ufe0f Commands</div>`;
     s.commands.forEach(cmd => {
-      html += `
-        <div class="command-block">
-          <div class="command-syntax">${escapeHtml(cmd.syntax || '')}</div>
-          <div class="command-desc">${escapeHtml(cmd.description || '')}</div>
-          ${cmd.example ? `<div class="command-example">${escapeHtml(cmd.example)}</div>` : ''}
-        </div>
-      `;
+      html += `<div class="command-block"><div class="command-syntax">${escapeHtml(cmd.syntax || '')}</div><div class="command-desc">${escapeHtml(cmd.description || '')}</div>${cmd.example ? `<div class="command-example">${escapeHtml(cmd.example)}</div>` : ''}</div>`;
     });
     html += `</div>`;
   }
 
-  // Code Snippets
   if (s.codeSnippets && s.codeSnippets.length > 0) {
-    html += `<div class="detail-section"><div class="detail-section-title">💻 Code Snippets</div>`;
+    html += `<div class="detail-section"><div class="detail-section-title">\ud83d\udcbb Code Snippets</div>`;
     s.codeSnippets.forEach(snippet => {
-      html += `
-        <div class="code-block">
-          <div class="code-lang">${escapeHtml(snippet.language || 'code')}</div>
-          <pre class="code-content">${escapeHtml(snippet.code || '')}</pre>
-          ${snippet.description ? `<div class="code-desc">${escapeHtml(snippet.description)}</div>` : ''}
-        </div>
-      `;
+      html += `<div class="code-block"><div class="code-lang">${escapeHtml(snippet.language || 'code')}</div><pre class="code-content">${escapeHtml(snippet.code || '')}</pre>${snippet.description ? `<div class="code-desc">${escapeHtml(snippet.description)}</div>` : ''}</div>`;
     });
     html += `</div>`;
   }
 
-  // When to Use
   if (s.whenToUse) {
-    html += `
-      <div class="detail-section">
-        <div class="detail-section-title">🕐 When to Use</div>
-        <div class="detail-text">${escapeHtml(s.whenToUse)}</div>
-      </div>
-    `;
+    html += `<div class="detail-section"><div class="detail-section-title">\ud83d\udd50 When to Use</div><div class="detail-text">${escapeHtml(s.whenToUse)}</div></div>`;
   }
 
-  // How to Use
   if (s.howToUse) {
-    html += `
-      <div class="detail-section">
-        <div class="detail-section-title">📋 How to Use</div>
-        <div class="detail-text">${escapeHtml(s.howToUse)}</div>
-      </div>
-    `;
+    html += `<div class="detail-section"><div class="detail-section-title">\ud83d\udccb How to Use</div><div class="detail-text">${escapeHtml(s.howToUse)}</div></div>`;
   }
 
-  // Why to Use
   if (s.whyToUse) {
-    html += `
-      <div class="detail-section">
-        <div class="detail-section-title">🎯 Why to Use</div>
-        <div class="detail-text">${escapeHtml(s.whyToUse)}</div>
-      </div>
-    `;
+    html += `<div class="detail-section"><div class="detail-section-title">\ud83c\udfaf Why to Use</div><div class="detail-text">${escapeHtml(s.whyToUse)}</div></div>`;
   }
 
-  // Tips
   if (s.tips && s.tips.length > 0) {
-    html += `
-      <div class="detail-section">
-        <div class="detail-section-title">💡 Tips & Best Practices</div>
-        <ul class="tips-list">
-          ${s.tips.map(tip => `<li>${escapeHtml(tip)}</li>`).join('')}
-        </ul>
-      </div>
-    `;
+    html += `<div class="detail-section"><div class="detail-section-title">\ud83d\udca1 Tips & Best Practices</div><ul class="tips-list">${s.tips.map(tip => `<li>${escapeHtml(tip)}</li>`).join('')}</ul></div>`;
   }
 
-  // Related Topics
   if (s.relatedTopics && s.relatedTopics.length > 0) {
-    html += `
-      <div class="detail-section">
-        <div class="detail-section-title">🔗 Related Topics</div>
-        <div class="related-topics">
-          ${s.relatedTopics.map(t => `<span class="related-topic">${escapeHtml(t)}</span>`).join('')}
-        </div>
-      </div>
-    `;
+    html += `<div class="detail-section"><div class="detail-section-title">\ud83d\udd17 Related Topics</div><div class="related-topics">${s.relatedTopics.map(t => `<span class="related-topic">${escapeHtml(t)}</span>`).join('')}</div></div>`;
   }
 
-  // Tags
   if (note.tags && note.tags.length > 0) {
-    html += `
-      <div class="detail-section">
-        <div class="detail-section-title">🏷️ Tags</div>
-        <div class="note-card-tags">
-          ${note.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}
-        </div>
-      </div>
-    `;
+    html += `<div class="detail-section"><div class="detail-section-title">\ud83c\udff7\ufe0f Tags</div><div class="note-card-tags">${note.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div></div>`;
   }
 
-  // Raw Input
-  html += `
-    <div class="detail-section">
-      <div class="detail-section-title">📄 Original Input</div>
-      <div class="detail-text" style="opacity: 0.7; font-size: 0.82rem;">${escapeHtml(note.rawInput)}</div>
-    </div>
-  `;
+  html += `<div class="detail-section"><div class="detail-section-title">\ud83d\udcc4 Original Input</div><div class="detail-text" style="opacity: 0.7; font-size: 0.82rem;">${escapeHtml(note.rawInput)}</div></div>`;
 
   noteDetailContent.innerHTML = html;
 }
@@ -392,7 +483,6 @@ function showSearchResults(data) {
   emptyState.style.display = 'none';
   searchResults.classList.add('active');
 
-  // AI Answer
   if (data.aiAnswer) {
     aiAnswerBox.style.display = 'block';
     aiAnswerContent.innerHTML = marked.parse(data.aiAnswer);
@@ -400,7 +490,6 @@ function showSearchResults(data) {
     aiAnswerBox.style.display = 'none';
   }
 
-  // Matching notes
   searchResultsTitle.textContent = `${data.totalResults} matching note${data.totalResults !== 1 ? 's' : ''}`;
   searchNotesGrid.innerHTML = data.notes.map(note => createNoteCard(note)).join('');
 }
@@ -416,12 +505,10 @@ function clearSearch() {
 function setActiveCategory(category) {
   activeCategory = category;
 
-  // Update nav active state
   document.querySelectorAll('.nav-item[data-category]').forEach(item => {
     item.classList.toggle('active', item.dataset.category === category);
   });
 
-  // Clear search if active
   if (searchResults.classList.contains('active')) {
     clearSearch();
     return;
@@ -431,7 +518,6 @@ function setActiveCategory(category) {
 }
 
 function updateCategoryCounts() {
-  // Fetch all notes to count categories
   fetch(`${API_BASE}/notes`)
     .then(res => res.json())
     .then(data => {
@@ -458,13 +544,19 @@ function updateStats() {
       month: 'short', day: 'numeric'
     });
   } else {
-    document.getElementById('statLastAdded').textContent = '—';
+    document.getElementById('statLastAdded').textContent = '\u2014';
   }
 }
 
 // ===== Modals =====
 function openAddModal() {
   noteInput.value = '';
+  if (folderInput) folderInput.value = '';
+  // Pre-fill folder if filtering by a specific folder
+  if (activeFolder !== 'all' && folderInput) {
+    folderInput.value = activeFolder;
+  }
+  loadFolders(); // Refresh folder suggestions
   addNoteModal.classList.add('active');
   setTimeout(() => noteInput.focus(), 200);
 }
@@ -481,7 +573,6 @@ function closeSidebar() {
 function openNoteDetail(id) {
   const note = allNotes.find(n => n._id === id);
   if (!note) {
-    // Try fetching from API if not in current list (e.g. from search results)
     fetch(`${API_BASE}/notes/${id}`)
       .then(res => res.json())
       .then(data => {
@@ -515,7 +606,8 @@ function submitNote() {
     return;
   }
 
-  createNote(raw);
+  const folder = folderInput ? folderInput.value.trim() : '';
+  createNote(raw, folder || null);
 }
 
 // ===== Search Handler =====
@@ -529,7 +621,6 @@ function handleSearchInput(e) {
     return;
   }
 
-  // Debounce 800ms
   searchTimeout = setTimeout(() => {
     if (query.length >= 2) {
       performSearch(query);
@@ -550,14 +641,13 @@ function hideProcessing() {
 
 // ===== Toast Notifications =====
 function showToast(message, type = 'info') {
-  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  const icons = { success: '\u2705', error: '\u274c', info: '\u2139\ufe0f' };
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${escapeHtml(message)}</span>`;
+  toast.innerHTML = `<span>${icons[type] || '\u2139\ufe0f'}</span><span>${escapeHtml(message)}</span>`;
 
   toastContainer.appendChild(toast);
 
-  // Auto remove after 4 seconds
   setTimeout(() => {
     toast.style.animation = 'slideOut 0.3s ease forwards';
     setTimeout(() => toast.remove(), 300);
