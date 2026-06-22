@@ -398,6 +398,7 @@ function createNoteCard(note) {
 
   const summary = note.structured?.summary || 'No summary available';
   const folderBadge = note.folder ? `<span class="folder-badge">\ud83d\udcc1 ${escapeHtml(note.folder)}</span>` : '';
+  const sourceLink = note.sourceUrl ? `<a class="source-link" href="${escapeHtml(note.sourceUrl)}" target="_blank" rel="noopener" onclick="event.stopPropagation()" title="${escapeHtml(note.sourceUrl)}">🔗 Source</a>` : '';
 
   return `
     <div class="note-card" data-category="${note.category}" data-folder="${escapeHtml(note.folder || 'General')}" onclick="openNoteDetail('${note._id}')">
@@ -410,6 +411,7 @@ function createNoteCard(note) {
       <div class="note-card-footer">
         <span class="note-date">${date}</span>
         <div class="note-actions">
+          ${sourceLink}
           <button class="btn-icon delete" onclick="deleteNote('${note._id}', event)" title="Delete">\ud83d\uddd1\ufe0f</button>
         </div>
       </div>
@@ -471,6 +473,11 @@ function renderNoteDetail(note) {
 
   if (note.tags && note.tags.length > 0) {
     html += `<div class="detail-section"><div class="detail-section-title">\ud83c\udff7\ufe0f Tags</div><div class="note-card-tags">${note.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div></div>`;
+  }
+
+  // Source URL
+  if (note.sourceUrl) {
+    html += `<div class="detail-section"><div class="detail-section-title">\ud83d\udd17 Source</div><div class="source-url-box"><a href="${escapeHtml(note.sourceUrl)}" target="_blank" rel="noopener" class="source-url-link">${escapeHtml(note.sourceUrl)}</a></div></div>`;
   }
 
   html += `<div class="detail-section"><div class="detail-section-title">\ud83d\udcc4 Original Input</div><div class="detail-text" style="opacity: 0.7; font-size: 0.82rem;">${escapeHtml(note.rawInput)}</div></div>`;

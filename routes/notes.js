@@ -31,7 +31,7 @@ router.get('/folders', async (req, res) => {
 // POST /api/notes — Process raw text with Gemini and save
 router.post('/', async (req, res) => {
   try {
-    const { rawInput, folder: manualFolder } = req.body;
+    const { rawInput, folder: manualFolder, sourceUrl } = req.body;
 
     if (!rawInput || !rawInput.trim()) {
       return res.status(400).json({ error: 'Raw input text is required' });
@@ -49,6 +49,7 @@ router.post('/', async (req, res) => {
       title: processed.title || 'Untitled Note',
       category: processed.category || 'general',
       folder: folder,
+      sourceUrl: sourceUrl || null,
       structured: processed.structured || {},
       tags: processed.tags || []
     });

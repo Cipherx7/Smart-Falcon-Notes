@@ -1612,3 +1612,48 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* ===== Source URL Styles ===== */
+.source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(38, 139, 210, 0.1);
+  border: 1px solid rgba(38, 139, 210, 0.2);
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--blue);
+  text-decoration: none;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+
+.source-link:hover {
+  background: rgba(38, 139, 210, 0.2);
+  color: var(--blue);
+  transform: translateY(-1px);
+}
+
+.source-url-box {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--blue);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  overflow: hidden;
+}
+
+.source-url-link {
+  color: var(--blue);
+  font-size: 0.83rem;
+  font-family: 'JetBrains Mono', monospace;
+  text-decoration: none;
+  word-break: break-all;
+  transition: var(--transition);
+}
+
+.source-url-link:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}

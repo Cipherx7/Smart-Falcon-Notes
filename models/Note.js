@@ -41,6 +41,10 @@ const noteSchema = new mongoose.Schema({
     type: String,
     default: 'General'
   },
+  sourceUrl: {
+    type: String,
+    default: null
+  },
   structured: structuredSchema,
   tags: [String]
 }, {
