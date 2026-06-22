@@ -37,6 +37,10 @@ const noteSchema = new mongoose.Schema({
     enum: ['command', 'note', 'code', 'concept', 'troubleshooting', 'general'],
     default: 'general'
   },
+  folder: {
+    type: String,
+    default: 'General'
+  },
   structured: structuredSchema,
   tags: [String]
 }, {
@@ -50,5 +54,8 @@ noteSchema.index({
   tags: 'text',
   'structured.summary': 'text'
 });
+
+// Index on folder for fast filtering
+noteSchema.index({ folder: 1 });
 
 module.exports = mongoose.model('Note', noteSchema);

@@ -1,7 +1,7 @@
 {
-  "name": "falcon-smart-notes",
+  "name": "smart-notes",
   "version": "1.0.0",
-  "description": "AI-powered smart notes for CrowdStrike Falcon learning",
+  "description": "AI-powered smart notes — structured knowledge with Gemini AI",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

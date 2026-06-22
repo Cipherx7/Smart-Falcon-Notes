@@ -1,4 +1,4 @@
-// ===== Falcon Smart Notes — Frontend App =====
+// ===== Smart Notes — Frontend App =====
 
 const API_BASE = '/api';
 
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== Theme Logic =====
 function initTheme() {
-  const savedTheme = localStorage.getItem('falcon-theme');
+  const savedTheme = localStorage.getItem('smart-notes-theme');
   if (savedTheme) {
     document.documentElement.setAttribute('data-theme', savedTheme);
     themeSelects.forEach(select => {
@@ -51,7 +51,7 @@ function initTheme() {
 function handleThemeChange(e) {
   const newTheme = e.target.value;
   document.documentElement.setAttribute('data-theme', newTheme);
-  localStorage.setItem('falcon-theme', newTheme);
+  localStorage.setItem('smart-notes-theme', newTheme);
   themeSelects.forEach(select => {
     if (select !== e.target) select.value = newTheme;
   });

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Falcon Smart Notes",
+  "name": "Smart Notes",
   "version": "1.0.0",
-  "description": "Send highlighted text directly to your local Falcon Notes AI knowledge base.",
+  "description": "Send highlighted text directly to your Smart Notes AI knowledge base.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -13,7 +13,7 @@
     "notifications"
   ],
   "host_permissions": [
-    "https://smart-falcon-notes.vercel.app/*"
+    "https://smart-notes-app.vercel.app/*"
   ],
   "background": {
     "service_worker": "background.js"

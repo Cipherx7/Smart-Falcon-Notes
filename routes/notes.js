@@ -3,10 +3,35 @@ const router = express.Router();
 const Note = require('../models/Note');
 const { processKnowledge } = require('../services/gemini');
 
+// GET /api/notes/folders — Get all unique folders with counts
+router.get('/folders', async (req, res) => {
+  try {
+    const folders = await Note.aggregate([
+      {
+        $group: {
+          _id: { $ifNull: ['$folder', 'General'] },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { count: -1 } }
+    ]);
+
+    const result = folders.map(f => ({
+      name: f._id,
+      count: f.count
+    }));
+
+    res.json({ success: true, folders: result });
+  } catch (error) {
+    console.error('Error fetching folders:', error);
+    res.status(500).json({ error: 'Failed to fetch folders' });
+  }
+});
+
 // POST /api/notes — Process raw text with Gemini and save
 router.post('/', async (req, res) => {
   try {
-    const { rawInput } = req.body;
+    const { rawInput, folder: manualFolder } = req.body;
 
     if (!rawInput || !rawInput.trim()) {
       return res.status(400).json({ error: 'Raw input text is required' });
@@ -15,11 +40,15 @@ router.post('/', async (req, res) => {
     // Process with Gemini AI
     const processed = await processKnowledge(rawInput);
 
+    // Use manual folder if provided, otherwise use AI-detected folder
+    const folder = manualFolder?.trim() || processed.folder || 'General';
+
     // Create note in MongoDB
     const note = new Note({
       rawInput: rawInput.trim(),
       title: processed.title || 'Untitled Note',
       category: processed.category || 'general',
+      folder: folder,
       structured: processed.structured || {},
       tags: processed.tags || []
     });
@@ -39,14 +68,18 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/notes — List all notes (optional category filter)
+// GET /api/notes — List all notes (optional category and folder filter)
 router.get('/', async (req, res) => {
   try {
-    const { category } = req.query;
+    const { category, folder } = req.query;
     const filter = {};
 
     if (category && category !== 'all') {
       filter.category = category;
+    }
+
+    if (folder && folder !== 'all') {
+      filter.folder = folder;
     }
 
     const notes = await Note.find(filter).sort({ createdAt: -1 });

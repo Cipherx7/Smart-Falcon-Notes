@@ -32,7 +32,7 @@ mongoose.connect(process.env.MONGODB_URI)
 
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`🦅 Falcon Smart Notes running on http://localhost:${PORT}`);
+    console.log(`📝 Smart Notes running on http://localhost:${PORT}`);
   });
 }
 

@@ -2,7 +2,7 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const KNOWLEDGE_SYSTEM_PROMPT = `You are a CrowdStrike Falcon knowledge processor. Your job is to take raw text about Falcon (EDR, threat hunting, detections, sensor management, CQL queries, APIs, etc.) and structure it into organized, actionable knowledge.
+const KNOWLEDGE_SYSTEM_PROMPT = `You are a general-purpose knowledge processor. Your job is to take raw text about any topic and structure it into organized, actionable knowledge.
 
 You MUST respond with valid JSON only. No markdown, no code fences, no extra text.
 
@@ -10,6 +10,7 @@ Output this exact JSON structure:
 {
   "title": "A concise, descriptive title for this knowledge entry",
   "category": "One of: command, note, code, concept, troubleshooting, general",
+  "folder": "The primary topic/technology/domain this knowledge belongs to (e.g., Proofpoint, Docker, Python, Linux, AWS, CrowdStrike, Kubernetes, Git, etc.)",
   "structured": {
     "summary": "A clear 2-3 sentence summary of what this knowledge covers",
     "commands": [
@@ -30,7 +31,7 @@ Output this exact JSON structure:
     "howToUse": "Step-by-step instructions on how to apply this",
     "whyToUse": "The reasoning and benefits of using this approach",
     "tips": ["Practical tips and best practices"],
-    "relatedTopics": ["Related Falcon topics to explore"]
+    "relatedTopics": ["Related topics to explore"]
   },
   "tags": ["relevant", "search", "tags"]
 }
@@ -39,11 +40,13 @@ Rules:
 - If the input doesn't contain commands, leave the commands array empty
 - If the input doesn't contain code, leave the codeSnippets array empty
 - Always provide summary, whenToUse, howToUse, whyToUse even if you need to infer them
-- Tags should include relevant Falcon-specific terms for searchability
+- Tags should include relevant domain-specific terms for searchability
 - Category should best match the primary content type
+- The "folder" field should be a short, clean topic name (1-3 words, Title Case). Examples: "Proofpoint", "Docker", "CrowdStrike Falcon", "Python", "Linux Administration", "AWS", "Git", "Networking"
+- If the topic is too generic or unclear, use "General" as the folder
 - Be thorough but concise`;
 
-const SEARCH_SYSTEM_PROMPT = `You are a CrowdStrike Falcon knowledge assistant with access to a knowledge base of stored notes about Falcon.
+const SEARCH_SYSTEM_PROMPT = `You are a knowledge assistant with access to a knowledge base of stored notes on various topics.
 
 CRITICAL RULES:
 1. When the user asks for a query, command, code, or syntax — DIRECTLY return the EXACT stored query/command/code from the notes. Do NOT paraphrase or generate new ones.
@@ -59,22 +62,22 @@ Format:
 - Keep it practical and actionable
 - Use code formatting for queries and commands`;
 
-const WHATSAPP_MARATHI_PROMPT = `You are a helpful Gen Z cybersecurity buddy giving advice over a WhatsApp chat.
-The user is asking a question about CrowdStrike Falcon.
+const WHATSAPP_MARATHI_PROMPT = `You are a helpful Gen Z buddy giving advice over a WhatsApp chat.
+The user is asking a question based on their knowledge base.
 
 IMPORTANT RULES FOR YOU:
 1. You MUST answer in the Marathi language, but written ENTIRELY in English alphabet/Latin script (Hinglish/Marathi-English style). 
-   - Example style: "Bhau, he query use kar..." or "Mitra, DnsRequest sathi he search kar..."
+   - Example style: "Bhau, he query use kar..." or "Mitra, he search kar..."
 2. Keep the tone very casual, friendly, and helpful—like you are texting a friend.
-3. Use plenty of appropriate WhatsApp emojis (🚀, 💬, 💻, 🦅, 🔥, etc.).
+3. Use plenty of appropriate WhatsApp emojis (🚀, 💬, 💻, 🔥, etc.).
 4. If there is a specific command or query requested, make sure to still format it properly in a markdown block so it's easy to copy.
 5. Base your answers on the provided notes context.
 6. Keep it concise.
 
 Example output format:
-"Arre mitra! 🦅 DnsRequest filter karaycha ahe na? Ekdum simple ahe, he bagh:
-\`\`\`cql
-#event_simpleName=DnsRequest
+"Arre mitra! 🚀 He filter use karaycha ahe na? Ekdum simple ahe, he bagh:
+\`\`\`
+example-command
 \`\`\`
 He try kar, ani kuthli issue aali tar sang mala! 🚀🔥"
 `;
@@ -131,7 +134,7 @@ async function smartSearch(query, notes, mode = 'default') {
       const code = (s.codeSnippets || []).map(c => 
         `  Language: ${c.language || ''}\n  Code: ${c.code || ''}\n  Description: ${c.description || ''}`
       ).join('\n');
-      return `--- Note ${i + 1}: "${note.title}" (${note.category}) ---
+      return `--- Note ${i + 1}: "${note.title}" (${note.category}) [Folder: ${note.folder || 'General'}] ---
 Summary: ${s.summary || 'No summary'}
 Commands:\n${cmds || '  None'}
 Code Snippets:\n${code || '  None'}

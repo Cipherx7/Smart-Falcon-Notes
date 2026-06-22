@@ -1,19 +1,19 @@
 // Extension Background Script
 
-const API_URL = 'https://smart-falcon-notes.vercel.app/api/notes';
+const API_URL = 'https://smart-notes-app.vercel.app/api/notes';
 
 // Create the context menu item when the extension is installed
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
-    id: 'send-to-falcon',
-    title: 'Send to Falcon Notes ✨',
+    id: 'send-to-notes',
+    title: 'Send to Smart Notes ✨',
     contexts: ['selection']
   });
 });
 
 // Listen for context menu clicks
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId === 'send-to-falcon') {
+  if (info.menuItemId === 'send-to-notes') {
     const selectedText = info.selectionText;
     if (selectedText) {
       sendToNotes(selectedText);
@@ -21,14 +21,14 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 });
 
-// Function to send the raw input to the local Express server
+// Function to send the raw input to the Express server
 async function sendToNotes(rawInput) {
   try {
     // Show a notification that processing started
-    chrome.notifications.create('falcon-processing', {
+    chrome.notifications.create('notes-processing', {
       type: 'basic',
       iconUrl: 'icons/icon128.png',
-      title: 'Falcon Smart Notes',
+      title: 'Smart Notes',
       message: 'Processing knowledge with Gemini AI...',
       priority: 0
     });
@@ -44,7 +44,7 @@ async function sendToNotes(rawInput) {
     const data = await response.json();
 
     // Clear the processing notification
-    chrome.notifications.clear('falcon-processing');
+    chrome.notifications.clear('notes-processing');
 
     if (data.success) {
       chrome.notifications.create({
@@ -59,8 +59,8 @@ async function sendToNotes(rawInput) {
     }
 
   } catch (error) {
-    console.error('Error sending to Falcon Notes:', error);
-    chrome.notifications.clear('falcon-processing');
+    console.error('Error sending to Smart Notes:', error);
+    chrome.notifications.clear('notes-processing');
     chrome.notifications.create({
       type: 'basic',
       iconUrl: 'icons/icon128.png',
